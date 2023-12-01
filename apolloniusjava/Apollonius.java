@@ -94,7 +94,7 @@ public class Apollonius {
     double height;
     int widthInt;
     int heightInt;
-    int quality = 5;
+    //int quality = 5;
     int scanGap = 1;
     double[][][] bisectors;
     Site[] sites = new Site[0];
@@ -186,23 +186,23 @@ public class Apollonius {
 
         if (minX < 0) {
             for (Site s : this.sites) {
-                s.x += -minX + 10;
+                s.x += -minX;
             }
         }
 
         if (minY < 0) {
             for (Site s : this.sites) {
-                s.y += -minY + 10;
+                s.y += -minY;
             }
         }
 
         if (xrange > this.width) {
-            this.width = xrange + 10;
+            this.width = xrange ;
             this.widthInt = (int) width;
         }
 
         if (yrange > this.height) {
-            this.height = yrange + 10;
+            this.height = yrange;
             this.heightInt = (int) height;
         }
         this.n = this.sites.length;
@@ -211,13 +211,11 @@ public class Apollonius {
     /**
      * set the curve quality (i.e number of bisectors calculated)
      * 
-     * @param quality a positive integer, default to 5, the larger the better
-     *                quality
      * @param scanGap a positive integer, default to 1, the larger the less
      *                bisectors get calculated
      */
-    void setCurveQuality(int quality, int scanGap) {
-        this.quality = quality;
+    void setScanGap(int scanGap) {
+        if (scanGap < 0) throw new Error("scanGap should be positive");
         this.scanGap = scanGap;
     }
 
@@ -248,7 +246,6 @@ public class Apollonius {
         ArrayList<double[][]> allBi = new ArrayList<double[][]>();
 
         sortSites(sites);
-        this.n = sites.length;
         int n = this.n;
         //double x2r = 0, y2r = 0;
         for (int i = 1; i < this.n - 1; i++) {
