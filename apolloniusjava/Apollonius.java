@@ -248,7 +248,7 @@ public class Apollonius {
         sortSites(sites);
         int n = this.n;
         //double x2r = 0, y2r = 0;
-        for (int i = 1; i < this.n - 1; i++) {
+        for (int i = 1; i < this.n; i++) {
             for (int j = i + 1; j < this.n + 1; j++) {
                 ArrayList<double[]> locSec = new ArrayList<double[]>();
                 // double distIJ = power(power(sites[i-1].x - sites[j-1].x, 2) + power(sites[i-1].y
