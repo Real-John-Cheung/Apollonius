@@ -11,7 +11,7 @@ public class Apollonius {
     /**
      * Site : disk or point with weight
      */
-    class Site implements Comparable<Site> {
+    static class Site implements Comparable<Site> {
 
         double x;
         double y;
@@ -52,7 +52,7 @@ public class Apollonius {
      * @param b
      * @return
      */
-    double distSq(Site a, Site b) {
+    static double distSq(Site a, Site b) {
         return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
     }
 
@@ -63,8 +63,8 @@ public class Apollonius {
      * @param b
      * @return
      */
-    double dist(Site a, Site b) {
-        return Math.sqrt(distSq(a, b));
+    static double dist(Site a, Site b) {
+        return Math.sqrt(Apollonius.distSq(a, b));
     }
 
     /**
@@ -76,7 +76,7 @@ public class Apollonius {
      * @param y2
      * @return
      */
-    double distP(double x1, double y1, double x2, double y2) {
+    static double distP(double x1, double y1, double x2, double y2) {
         return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
     }
 
@@ -85,7 +85,7 @@ public class Apollonius {
      * 
      * @param sites
      */
-    void sortSites(Site[] sites) {
+    static void sortSites(Site[] sites) {
         Arrays.sort(sites);
     }
 
@@ -245,7 +245,7 @@ public class Apollonius {
         Site[] sites = this.sites;
         ArrayList<double[][]> allBi = new ArrayList<double[][]>();
 
-        sortSites(sites);
+        Apollonius.sortSites(sites);
         int n = this.n;
         //double x2r = 0, y2r = 0;
         for (int i = 1; i < this.n; i++) {
@@ -253,7 +253,7 @@ public class Apollonius {
                 ArrayList<double[]> locSec = new ArrayList<double[]>();
                 // double distIJ = power(power(sites[i-1].x - sites[j-1].x, 2) + power(sites[i-1].y
                 // - sites[j-1].y,2), 0.5);//
-                double distIJ = dist(sites[i - 1], sites[j - 1]);
+                double distIJ = Apollonius.dist(sites[i - 1], sites[j - 1]);
                 double weightDiffJI = sites[j - 1].w - sites[i - 1].w;
                 if (distIJ > weightDiffJI) {
                     double halfDistIJ = distIJ / 2;
@@ -277,11 +277,11 @@ public class Apollonius {
                             x10 = midXIJ + Math.cos(-th) * x0 - Math.sin(-th) * yjInt;
                             y10 = midYIJ + Math.sin(-th) * x0 + Math.cos(-th) * yjInt;
                             if (x10 > 0 && x10 < this.width && y10 > 0 && y10 < this.height) {
-                                double d5 = distP(x10, y10, sites[i - 1].x, sites[i - 1].y) - sites[i - 1].w;
+                                double d5 = Apollonius.distP(x10, y10, sites[i - 1].x, sites[i - 1].y) - sites[i - 1].w;
                                 boolean valid = true;
                                 for (int k = 1; k < n + 1; k++) {
                                     if (k != i && k != j) {
-                                        double d6 = distP(x10, y10, sites[k - 1].x, sites[k - 1].y) - sites[k - 1].w;
+                                        double d6 = Apollonius.distP(x10, y10, sites[k - 1].x, sites[k - 1].y) - sites[k - 1].w;
                                         if (d5 > d6) {
                                             valid = false;
                                             break;
