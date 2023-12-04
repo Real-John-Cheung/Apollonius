@@ -11,7 +11,7 @@ public class Apollonius {
     /**
      * Site : disk or point with weight
      */
-    static class Site implements Comparable<Site> {
+    public static class Site implements Comparable<Site> {
 
         double x;
         double y;
@@ -24,13 +24,13 @@ public class Apollonius {
          * @param y location's y coordinate
          * @param w weight (or radius of the disk)
          */
-        Site(double x, double y, double w) {
+        public Site(double x, double y, double w) {
             this.x = x;
             this.y = y;
             this.w = w;
         }
 
-        double getWeight() {
+        public double getWeight() {
             return this.w;
         }
 
@@ -52,7 +52,7 @@ public class Apollonius {
      * @param b
      * @return
      */
-    static double distSq(Site a, Site b) {
+    public static double distSq(Site a, Site b) {
         return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
     }
 
@@ -63,7 +63,7 @@ public class Apollonius {
      * @param b
      * @return
      */
-    static double dist(Site a, Site b) {
+    public static double dist(Site a, Site b) {
         return Math.sqrt(Apollonius.distSq(a, b));
     }
 
@@ -76,7 +76,7 @@ public class Apollonius {
      * @param y2
      * @return
      */
-    static double distP(double x1, double y1, double x2, double y2) {
+    public static double distP(double x1, double y1, double x2, double y2) {
         return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
     }
 
@@ -85,19 +85,19 @@ public class Apollonius {
      * 
      * @param sites
      */
-    static void sortSites(Site[] sites) {
+    public static void sortSites(Site[] sites) {
         Arrays.sort(sites);
     }
 
-    int n;
-    double width;
-    double height;
+    public int n;
+    public double width;
+    public double height;
     int widthInt;
     int heightInt;
     //int quality = 5;
-    int scanGap = 1;
-    double[][][] bisectors;
-    Site[] sites = new Site[0];
+    public int scanGap = 1;
+    public double[][][] bisectors;
+    public Site[] sites = new Site[0];
 
     /**
      * constructor with width and height
@@ -105,7 +105,7 @@ public class Apollonius {
      * @param width
      * @param height
      */
-    Apollonius(double width, double height) {
+    public Apollonius(double width, double height) {
         this.width = width;
         this.height = height;
         this.widthInt = (int) width;
@@ -115,7 +115,7 @@ public class Apollonius {
     /**
      * empty constructor
      */
-    Apollonius() {
+    public Apollonius() {
         this(100, 100);
     }
 
@@ -126,7 +126,7 @@ public class Apollonius {
      * @param height
      * @param sites
      */
-    Apollonius(double width, double height, double[] data) {
+    public Apollonius(double width, double height, double[] data) {
         this.width = width;
         this.height = height;
         this.widthInt = (int) width;
@@ -140,7 +140,7 @@ public class Apollonius {
      * 
      * @param data
      */
-    Apollonius(double[] data) {
+    public Apollonius(double[] data) {
         this.width = 0;
         this.height = 0;
         this.widthInt = (int) width;
@@ -156,7 +156,7 @@ public class Apollonius {
      * 
      * @param sites
      */
-    void setSites(double[] sites) {
+    public void setSites(double[] sites) {
         if (sites.length % 3 != 0)
             throw new Error("invalid sites");
         double minX = Double.POSITIVE_INFINITY;
@@ -214,12 +214,12 @@ public class Apollonius {
      * @param scanGap a positive integer, default to 1, the larger the less
      *                bisectors get calculated
      */
-    void setScanGap(int scanGap) {
+    public void setScanGap(int scanGap) {
         if (scanGap < 0) throw new Error("scanGap should be positive");
         this.scanGap = scanGap;
     }
 
-    void _setSitesPure(double[] data) {
+    public void _setSitesPure(double[] data) {
         this.sites = new Site[data.length / 3];
         for (int i = 0; i < this.sites.length; i++) {
             this.sites[i] = new Site(data[i * 3], data[i * 3 + 1], data[i * 3 + 2]);
@@ -232,7 +232,7 @@ public class Apollonius {
      * 
      * @param sites
      */
-    void setSites(Site[] sites) {
+    public void setSites(Site[] sites) {
         this.sites = sites;
         this.n = this.sites.length;
     }
@@ -241,7 +241,7 @@ public class Apollonius {
      * build the graph
      * 
      */
-    void build() {
+    public void build() {
         Site[] sites = this.sites;
         ArrayList<double[][]> allBi = new ArrayList<double[][]>();
 
@@ -306,7 +306,7 @@ public class Apollonius {
      * 
      * @return
      */
-    double[] siteCenters() {
+    public double[] siteCenters() {
         double[] res = new double[this.sites.length * 2];
         for (int i = 0; i < this.sites.length; i++) {
             res[i * 2] = this.sites[i].x;
@@ -320,7 +320,7 @@ public class Apollonius {
      * 
      * @return
      */
-    double[] flattenSites() {
+    public double[] flattenSites() {
         double[] res = new double[this.sites.length * 3];
         for (int i = 0; i < this.sites.length; i++) {
             res[i * 3] = this.sites[i].x;
