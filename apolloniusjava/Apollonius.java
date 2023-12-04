@@ -265,52 +265,6 @@ public class Apollonius {
                     if (sites[i - 1].x < sites[j - 1].x) {
                         th = Math.PI - Math.atan(ph / Math.sqrt(1 - ph * ph));
                     }
-                    // double minY = 0, maxY = 0;
-                    // int rr = 0, xj = 0;
-                    // double a2r = 0.5 / weightDiffJI;
-                    // while (rr == 0) {
-                    //     double a1r = 16 * halfDistIJ * halfDistIJ * xj * xj - 4 * weightDiffJI * weightDiffJI * xj * xj - 4 * halfDistIJ * halfDistIJ * weightDiffJI * weightDiffJI
-                    //             + weightDiffJI * weightDiffJI * weightDiffJI * weightDiffJI;
-                    //     if (a1r >= 0) {
-                    //         double yr = a2r * Math.sqrt(a1r);
-                    //         double ymr = -yr;
-                    //         x2r = midXIJ + Math.cos(-th) * xj - Math.sin(-th) * ymr;
-                    //         y2r = midYIJ + Math.sin(-th) * xj + Math.cos(-th) * ymr;
-                    //         if (x2r > 0 && x2r < this.width && y2r > 0 && y2r < this.height) {
-                    //             double d3 = distP(x2r, y2r, sites[i - 1].x, sites[i - 1].y) - sites[i - 1].w;
-                    //             int br2 = 0;
-                    //             for (int k = 1; k < n + 1; k++) {
-                    //                 if (k != i && k != j) {
-                    //                     double d4 = distP(x2r, y2r, sites[k - 1].x, sites[k - 1].y) - sites[k - 1].w;
-                    //                     if (d3 > d4) {
-                    //                         br2 = 1;
-                    //                         break;
-                    //                     }
-                    //                 }
-                    //             }
-                    //             if (br2 == 0) {
-                    //                 locSec.add(new double[] { x2r, y2r, -1 });
-                    //             }
-                    //             if (ymr < minY) {
-                    //                 minY = ymr;
-                    //             }
-                    //             if (ymr > maxY) {
-                    //                 maxY = ymr;
-                    //             }
-                    //         }
-                    //     }
-                    //     xj+=this.scanGap;
-                    //     int rwe = 0;
-                    //     if (x2r < 0 || x2r > this.width || y2r < 0 || y2r > this.height) {
-                    //         rwe++;
-                    //     }
-                    //     if (rwe == 1) {
-                    //         rr = 1;
-                    //     }
-                    //     if (xj < this.quality) {// ?
-                    //         rr = 0;
-                    //     }
-                    // }
                     int minYInt = -this.heightInt;
                     int maxYInt = this.heightInt;
                     for (int yjInt = minYInt; yjInt <= maxYInt; yjInt += this.scanGap) {
