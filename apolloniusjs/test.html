@@ -1,41 +1,55 @@
 <!DOCTYPE html>
+
 <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-delaunay@6.0.4/dist/d3-delaunay.min.js"></script>
     <script src="./apollonius.js"></script>
 
     <script>
-        function setup(){
-            createCanvas(600,600);
+        function setup() {
+            createCanvas(600, 600);
             background(255);
             stroke(0);
             noFill();
-            // let data = [];
-            // for (let i = 0; i < 9; i++) {
-            //     for (let j = 0; j < 9; j++) {
-            //         let x = 60 + i * 60 + random(-20,20);
-            //         let y = 60 + j * 60 + random(-20,20);
-            //         let w = random(5,30);
-            //         circle(x,y,w*2);
-            //         data.push(x,y,w);
-            //     }
-            // }
-            let data = [300,300,300, 150, 450, 25, 200,300,20, 500,350,40]
+            let data = [];
+            for (let i = 0; i < 9; i++) {
+                for (let j = 0; j < 9; j++) {
+                    let x = 60 + i * 60 + random(-20, 20);
+                    let y = 60 + j * 60 + random(-20, 20);
+                    let w = random(5, 30);
+                    data.push(x, y, w);
+                }
+            }
+            // data = [150, 450, 25, 200, 300, 20, 500, 350, 40, 250, 400, 30]
 
-            for (let i = 0; i < data.length/3; i++) {
+            for (let i = 0; i < data.length / 3; i++) {
                 //text(i+1, data[i*3], data[i*3 + 1])
-                circle(data[i*3], data[i*3 + 1], data[i*3+2] * 2);
+                circle(data[i * 3], data[i * 3 + 1], data[i * 3 + 2] * 2);
             }
             let g = new Apollonius(width, height);
+            g.setDelaunator(d3.Delaunay);
             g.setSites(data, true);
-            g.setScanGap(5);
+            g.setScanGap(1);
             g.build();
-            console.log(g.bisectors);
-            stroke(255,0,0);
+            stroke(0, 255, 0);
+            //
+            if (g.delaunay) {
+                const { points, halfedges, triangles } = g.delaunay;
+                for (let i = 0, n = halfedges.length; i < n; ++i) {
+                    const j = halfedges[i];
+                    if (j < i) continue;
+                    const ti = triangles[i];
+                    const tj = triangles[j];
+                    line(points[ti * 2], points[ti * 2 + 1], points[tj * 2], points[tj * 2 + 1]);
+                }
+            }
+            //
+            stroke(255, 0, 0);
             for (let i = 0; i < g.bisectors.length; i++) {
                 const sec = g.bisectors[i];
                 for (let j = 1; j < sec.length; j++) {
-                    line(sec[j][0], sec[j][1],sec[j-1][0],sec[j-1][1]);
-                    
+                    line(sec[j][0], sec[j][1], sec[j - 1][0], sec[j - 1][1]);
+
                 }
             }
         }

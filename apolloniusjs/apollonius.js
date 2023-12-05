@@ -62,8 +62,8 @@ class Apollonius {
      * @param {number} b 
      * @returns 
      */
-    static distW(a,b){
-        return Apollonius.dist(a,b) - a.w - b.w;
+    static distW(a, b) {
+        return Apollonius.dist(a, b) - a.w - b.w;
     }
 
 
@@ -131,8 +131,16 @@ class Apollonius {
         if (data && data.length) this.setSites(data);
         this.scanGap = 1;
         this.bisectors = [];
+        this.Delaunay = null;
     }
 
+    /**
+     * set the delaunator to be used, it should be a d3.Delaunay module
+     * @param {d3.Delaunay} d 
+     */
+    setDelaunator(d) {
+        if (d) this.Delaunay = d;
+    }
 
 
     /**
@@ -217,61 +225,125 @@ class Apollonius {
     build() {
         let sites = this.sites;
         let allBi = [];
-
         Apollonius.sortSites(sites);
+        if (this.Delaunay) {
+            this.delaunay = new this.Delaunay(this.siteCenters());
+        }
         let n = this.n;
         //double x2r = 0, y2r = 0;
-        for (let i = 1; i < this.n; i++) {
-            for (let j = i + 1; j < this.n + 1; j++) {
-                let locSec = [];
-                // double distIJ = power(power(sites[i-1].x - sites[j-1].x, 2) + power(sites[i-1].y
-                // - sites[j-1].y,2), 0.5);//
-                let distIJ = Apollonius.dist(sites[i - 1], sites[j - 1]);
-                let weightDiffJI = sites[j - 1].w - sites[i - 1].w;
-                if (i === 1) text(i, sites[i-1].x,sites[i-1].y)
-                text(j,sites[j-1].x,sites[j-1].y)
-                if (j === 4) console.log(distIJ, weightDiffJI);
-                if (distIJ > weightDiffJI) {
-                    let halfDistIJ = distIJ / 2;
-                    let midXIJ = (sites[i - 1].x + sites[j - 1].x) / 2;
-                    let midYIJ = (sites[i - 1].y + sites[j - 1].y) / 2;
-                    let deltaY = midYIJ - sites[i - 1].y;
-                    let ph = deltaY / halfDistIJ;
-                    let th = Math.atan(ph / Math.sqrt(1 - ph * ph));
-                    if (sites[i - 1].x < sites[j - 1].x) {
-                        th = Math.PI - Math.atan(ph / Math.sqrt(1 - ph * ph));
-                    }
-                    let minYInt = -this.heightInt;
-                    let maxYInt = this.heightInt;
-                    for (let yjInt = minYInt; yjInt <= maxYInt; yjInt += this.scanGap) {
-                        let b1y = 4 * (halfDistIJ * weightDiffJI) * (halfDistIJ * weightDiffJI) + 4 * (weightDiffJI * yjInt) * (weightDiffJI * yjInt) - weightDiffJI * weightDiffJI * weightDiffJI * weightDiffJI;
-                        let b2y = (16 * halfDistIJ * halfDistIJ - 4 * weightDiffJI * weightDiffJI);
-                        let b3y = b1y / b2y;
-                        if (b3y >= 0) {
-                            let x0 = Math.sqrt(b3y);
-                            let x10, y10;
-                            x10 = midXIJ + Math.cos(-th) * x0 - Math.sin(-th) * yjInt;
-                            y10 = midYIJ + Math.sin(-th) * x0 + Math.cos(-th) * yjInt;
-                            if (x10 > 0 && x10 < this.width && y10 > 0 && y10 < this.height) {
-                                let d5 = Apollonius.distP(x10, y10, sites[i - 1].x, sites[i - 1].y) - sites[i - 1].w;
-                                let valid = true;
-                                for (let k = 1; k < n + 1; k++) {
-                                    if (k != i && k != j) {
-                                        let d6 = Apollonius.distP(x10, y10, sites[k - 1].x, sites[k - 1].y) - sites[k - 1].w;
-                                        if (d5 > d6) {
-                                            valid = false;
-                                            break;
+        if (this.delaunay) {
+            let processed = new Set();
+            for (let i = 0; i < n; i++) {
+                let pool = new Set();
+                let neighbors = [...this.delaunay.neighbors(i)];
+                neighbors.forEach(ind => pool.add(ind));
+                neighbors.forEach(n => {
+                    let nn = [...this.delaunay.neighbors(n)];
+                    nn.forEach(ind => pool.add(ind));
+                });
+                for (const j of pool) {
+                    let key = i < j ? i + " " + j : j + " " + i;
+                    if (processed.has(key)) continue;
+                    let locSec = [];
+                    let distIJ = Apollonius.dist(sites[i], sites[j]);
+                    let weightDiffJI = sites[j].w - sites[i].w;
+                    if (distIJ > weightDiffJI) {
+                        let midXIJ,midYIJ,halfDistIJ
+                        halfDistIJ = distIJ/2
+                        midXIJ = (sites[i].x + sites[j].x) / 2; // ?
+                        midYIJ = (sites[i].y + sites[j].y) / 2;
+                        // let midRatio = 0.5 + (sites[i].w - sites[j].w)/(2 * distIJ);
+                        // midXIJ = sites[i].x + midRatio * (sites[j].x - sites[i].x);
+                        // midYIJ = sites[i].y + midRatio * (sites[j].y - sites[i].y);
+                        // halfDistIJ = distIJ * midRatio;
+                        let deltaY = midYIJ - sites[i].y;
+                        let ph = deltaY / (halfDistIJ);
+                        let th = Math.atan(ph / Math.sqrt(1 - ph * ph));
+                        if (sites[i].x < sites[j].x) {
+                            th = Math.PI - Math.atan(ph / Math.sqrt(1 - ph * ph));
+                        }
+                        let minYInt = -this.heightInt;
+                        let maxYInt = this.heightInt;
+                        for (let yjInt = minYInt; yjInt <= maxYInt; yjInt += this.scanGap) {
+                            let b1y = 4 * (halfDistIJ * weightDiffJI) * (halfDistIJ * weightDiffJI) + 4 * (weightDiffJI * yjInt) * (weightDiffJI * yjInt) - weightDiffJI * weightDiffJI * weightDiffJI * weightDiffJI;
+                            let b2y = (16 * halfDistIJ * halfDistIJ - 4 * weightDiffJI * weightDiffJI);
+                            let b3y = b1y / b2y;
+                            if (b3y >= 0) {
+                                let x0 = Math.sqrt(b3y);
+                                let x10, y10;
+                                x10 = midXIJ + Math.cos(-th) * x0 - Math.sin(-th) * yjInt;
+                                y10 = midYIJ + Math.sin(-th) * x0 + Math.cos(-th) * yjInt;
+                                if (x10 > 0 && x10 < this.width && y10 > 0 && y10 < this.height) {
+                                    let d5 = Apollonius.distP(x10, y10, sites[i].x, sites[i].y) - sites[i].w;
+                                    let valid = true;
+                                    for (const k of pool) {
+                                        if (k != i && k != j) {
+                                            let d6 = Apollonius.distP(x10, y10, sites[k].x, sites[k].y) - sites[k].w;
+                                            if (d5 > d6) {
+                                                valid = false;
+                                                break;
+                                            }
                                         }
                                     }
-                                }
-                                if (valid) {
-                                    locSec.push([x10, y10]);
+                                    if (valid) {
+                                        locSec.push([x10, y10]);
+                                    }
                                 }
                             }
                         }
                     }
+                    if (locSec.length > 0) allBi.push(locSec);
+                    processed.add(i < j ? i + " " + j : j + " " + i);
                 }
-                if (locSec.length > 0) allBi.push(locSec);
+            }
+        } else {
+            for (let i = 1; i < this.n; i++) {
+                for (let j = i + 1; j < this.n + 1; j++) {
+                    let locSec = [];
+                    let distIJ = Apollonius.dist(sites[i - 1], sites[j - 1]);
+                    let weightDiffJI = sites[j - 1].w - sites[i - 1].w;
+                    if (distIJ > weightDiffJI) {
+                        let halfDistIJ = distIJ / 2;
+                        let midXIJ = (sites[i - 1].x + sites[j - 1].x) / 2;
+                        let midYIJ = (sites[i - 1].y + sites[j - 1].y) / 2;
+                        let deltaY = midYIJ - sites[i - 1].y;
+                        let ph = deltaY / halfDistIJ;
+                        let th = Math.atan(ph / Math.sqrt(1 - ph * ph));
+                        if (sites[i - 1].x < sites[j - 1].x) {
+                            th = Math.PI - Math.atan(ph / Math.sqrt(1 - ph * ph));
+                        }
+                        let minYInt = -this.heightInt;
+                        let maxYInt = this.heightInt;
+                        for (let yjInt = minYInt; yjInt <= maxYInt; yjInt += this.scanGap) {
+                            let b1y = 4 * (halfDistIJ * weightDiffJI) * (halfDistIJ * weightDiffJI) + 4 * (weightDiffJI * yjInt) * (weightDiffJI * yjInt) - weightDiffJI * weightDiffJI * weightDiffJI * weightDiffJI;
+                            let b2y = (16 * halfDistIJ * halfDistIJ - 4 * weightDiffJI * weightDiffJI);
+                            let b3y = b1y / b2y;
+                            if (b3y >= 0) {
+                                let x0 = Math.sqrt(b3y);
+                                let x10, y10;
+                                x10 = midXIJ + Math.cos(-th) * x0 - Math.sin(-th) * yjInt;
+                                y10 = midYIJ + Math.sin(-th) * x0 + Math.cos(-th) * yjInt;
+                                if (x10 > 0 && x10 < this.width && y10 > 0 && y10 < this.height) {
+                                    let d5 = Apollonius.distP(x10, y10, sites[i - 1].x, sites[i - 1].y) - sites[i - 1].w;
+                                    let valid = true;
+                                    for (let k = 1; k < n + 1; k++) {
+                                        if (k != i && k != j) {
+                                            let d6 = Apollonius.distP(x10, y10, sites[k - 1].x, sites[k - 1].y) - sites[k - 1].w;
+                                            if (d5 > d6) {
+                                                valid = false;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (valid) {
+                                        locSec.push([x10, y10]);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (locSec.length > 0) allBi.push(locSec);
+                }
             }
         }
         this.bisectors = allBi;
