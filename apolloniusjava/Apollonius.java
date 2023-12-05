@@ -1,7 +1,7 @@
 package apolloniusjava;
 
-import java.util.Arrays;
-import java.util.ArrayList;
+import d3delaunayforprocessing.*;
+import java.util.*;
 
 /**
  * Apollonius
@@ -94,10 +94,11 @@ public class Apollonius {
     public double height;
     int widthInt;
     int heightInt;
-    //int quality = 5;
+    // int quality = 5;
     public int scanGap = 1;
     public double[][][] bisectors;
     public Site[] sites = new Site[0];
+    public Delaunay delaunay = null;
 
     /**
      * constructor with width and height
@@ -197,7 +198,7 @@ public class Apollonius {
         }
 
         if (xrange > this.width) {
-            this.width = xrange ;
+            this.width = xrange;
             this.widthInt = (int) width;
         }
 
@@ -215,7 +216,8 @@ public class Apollonius {
      *                bisectors get calculated
      */
     public void setScanGap(int scanGap) {
-        if (scanGap < 0) throw new Error("scanGap should be positive");
+        if (scanGap < 0)
+            throw new Error("scanGap should be positive");
         this.scanGap = scanGap;
     }
 
@@ -242,63 +244,139 @@ public class Apollonius {
      * 
      */
     public void build() {
+        this.build(false);
+    }
+
+    /**
+     * 
+     * @param usingDelaunay if true, use delaunay triangulation
+     */
+    public void build(boolean usingDelaunay) {
         Site[] sites = this.sites;
         ArrayList<double[][]> allBi = new ArrayList<double[][]>();
 
         Apollonius.sortSites(sites);
         int n = this.n;
-        //double x2r = 0, y2r = 0;
-        for (int i = 1; i < this.n; i++) {
-            for (int j = i + 1; j < this.n + 1; j++) {
-                ArrayList<double[]> locSec = new ArrayList<double[]>();
-                // double distIJ = power(power(sites[i-1].x - sites[j-1].x, 2) + power(sites[i-1].y
-                // - sites[j-1].y,2), 0.5);//
-                double distIJ = Apollonius.dist(sites[i - 1], sites[j - 1]);
-                double weightDiffJI = sites[j - 1].w - sites[i - 1].w;
-                if (distIJ > weightDiffJI) {
-                    double halfDistIJ = distIJ / 2;
-                    double midXIJ = (sites[i - 1].x + sites[j - 1].x) / 2;
-                    double midYIJ = (sites[i - 1].y + sites[j - 1].y) / 2;
-                    double deltaY = midYIJ - sites[i - 1].y;
-                    double ph = deltaY / halfDistIJ;
-                    double th = Math.atan(ph / Math.sqrt(1 - ph * ph));
-                    if (sites[i - 1].x < sites[j - 1].x) {
-                        th = Math.PI - Math.atan(ph / Math.sqrt(1 - ph * ph));
+        // double x2r = 0, y2r = 0;
+        if (usingDelaunay) {
+            this.delaunay = new Delaunay(this.siteCenters());
+            Set<String> processed = new HashSet<String>();
+            for (int i = 0; i < n; i++) {
+                Set<Integer> pool = new HashSet<Integer>();
+                int[] neighbors = this.delaunay.neighbors(i);
+                for (int ind : neighbors) {
+                    pool.add(ind);
+                    int[] nn = this.delaunay.neighbors(ind);
+                    for (int ind2 : nn) {
+                        pool.add(ind2);
                     }
-                    int minYInt = -this.heightInt;
-                    int maxYInt = this.heightInt;
-                    for (int yjInt = minYInt; yjInt <= maxYInt; yjInt += this.scanGap) {
-                        double b1y = 4 * (halfDistIJ * weightDiffJI) * (halfDistIJ * weightDiffJI) + 4 * (weightDiffJI * yjInt) * (weightDiffJI * yjInt) - weightDiffJI * weightDiffJI * weightDiffJI * weightDiffJI;
-                        double b2y = (16 * halfDistIJ * halfDistIJ - 4 * weightDiffJI * weightDiffJI);
-                        double b3y = b1y / b2y;
-                        if (b3y >= 0) {
-                            double x0 = Math.sqrt(b3y);
-                            double x10, y10;
-                            x10 = midXIJ + Math.cos(-th) * x0 - Math.sin(-th) * yjInt;
-                            y10 = midYIJ + Math.sin(-th) * x0 + Math.cos(-th) * yjInt;
-                            if (x10 > 0 && x10 < this.width && y10 > 0 && y10 < this.height) {
-                                double d5 = Apollonius.distP(x10, y10, sites[i - 1].x, sites[i - 1].y) - sites[i - 1].w;
-                                boolean valid = true;
-                                for (int k = 1; k < n + 1; k++) {
-                                    if (k != i && k != j) {
-                                        double d6 = Apollonius.distP(x10, y10, sites[k - 1].x, sites[k - 1].y) - sites[k - 1].w;
-                                        if (d5 > d6) {
-                                            valid = false;
-                                            break;
+                }
+                for (int j : pool) {
+                    String key = i < j ? i + " " + j : j + " " + i;
+                    if (processed.contains(key)) continue;
+                    ArrayList<double[]> locSec = new ArrayList<double[]>();
+                    double distIJ = Apollonius.dist(sites[i], sites[j]);
+                    double weightDiffJI = sites[j].w - sites[i].w;
+                    if (distIJ > weightDiffJI) {
+                        double midXIJ, midYIJ, halfDistIJ;
+                        halfDistIJ = distIJ / 2;
+                        midXIJ = (sites[i].x + sites[j].y) / 2;
+                        midYIJ = (sites[i].y + sites[j].y) / 2;
+                        double deltaY = midYIJ - sites[i].y;
+                        double ph = deltaY / (halfDistIJ);
+                        double th = Math.atan(ph / Math.sqrt(1 - ph * ph));
+                        if (sites[i].x < sites[j].x) {
+                            th = Math.PI - Math.atan(ph / Math.sqrt(1 - ph * ph));
+                        }
+                        int minYInt = -this.heightInt;
+                        int maxYInt = this.heightInt;
+                        for (int yjInt = minYInt; yjInt <= maxYInt; yjInt += this.scanGap) {
+                            double b1y = 4 * (halfDistIJ * weightDiffJI) * (halfDistIJ * weightDiffJI) + 4 * (weightDiffJI * yjInt) * (weightDiffJI * yjInt) - weightDiffJI * weightDiffJI * weightDiffJI * weightDiffJI;
+                            double b2y = (16 * halfDistIJ * halfDistIJ - 4 * weightDiffJI * weightDiffJI);
+                            double b3y = b1y / b2y;
+                            if (b3y >= 0) {
+                                double x0 = Math.sqrt(b3y);
+                                double x10, y10;
+                                x10 = midXIJ + Math.cos(-th) * x0 - Math.sin(-th) * yjInt;
+                                y10 = midYIJ + Math.sin(-th) * x0 + Math.cos(-th) * yjInt;
+                                if (x10 > 0 && x10 < this.width && y10 > 0 && y10 < this.height) {
+                                    double d5 = Apollonius.distP(x10, y10, sites[i].x, sites[i].y) - sites[i].w;
+                                    boolean valid = true;
+                                    for (int k : pool) {
+                                        if (k != i && k != j) {
+                                            double d6 = Apollonius.distP(x10, y10, sites[k].x, sites[k].y) - sites[k].w;
+                                            if (d5 > d6) {
+                                                valid = false;
+                                                break;
+                                            }
                                         }
                                     }
-                                }
-                                if (valid) {
-                                    locSec.add(new double[] { x10, y10 });
+                                    if (valid) {
+                                        locSec.add(new double[] {x10,y10});
+                                    }
                                 }
                             }
                         }
                     }
+                    if (locSec.size() > 0) allBi.add(locSec.toArray(new double[][]{}));
                 }
-                if (locSec.size() > 0) allBi.add(locSec.toArray(new double[][]{}));
+            }
+        } else {
+            for (int i = 1; i < this.n; i++) {
+                for (int j = i + 1; j < this.n + 1; j++) {
+                    ArrayList<double[]> locSec = new ArrayList<double[]>();
+                    double distIJ = Apollonius.dist(sites[i - 1], sites[j - 1]);
+                    double weightDiffJI = sites[j - 1].w - sites[i - 1].w;
+                    if (distIJ > weightDiffJI) {
+                        double halfDistIJ = distIJ / 2;
+                        double midXIJ = (sites[i - 1].x + sites[j - 1].x) / 2;
+                        double midYIJ = (sites[i - 1].y + sites[j - 1].y) / 2;
+                        double deltaY = midYIJ - sites[i - 1].y;
+                        double ph = deltaY / halfDistIJ;
+                        double th = Math.atan(ph / Math.sqrt(1 - ph * ph));
+                        if (sites[i - 1].x < sites[j - 1].x) {
+                            th = Math.PI - Math.atan(ph / Math.sqrt(1 - ph * ph));
+                        }
+                        int minYInt = -this.heightInt;
+                        int maxYInt = this.heightInt;
+                        for (int yjInt = minYInt; yjInt <= maxYInt; yjInt += this.scanGap) {
+                            double b1y = 4 * (halfDistIJ * weightDiffJI) * (halfDistIJ * weightDiffJI)
+                                    + 4 * (weightDiffJI * yjInt) * (weightDiffJI * yjInt)
+                                    - weightDiffJI * weightDiffJI * weightDiffJI * weightDiffJI;
+                            double b2y = (16 * halfDistIJ * halfDistIJ - 4 * weightDiffJI * weightDiffJI);
+                            double b3y = b1y / b2y;
+                            if (b3y >= 0) {
+                                double x0 = Math.sqrt(b3y);
+                                double x10, y10;
+                                x10 = midXIJ + Math.cos(-th) * x0 - Math.sin(-th) * yjInt;
+                                y10 = midYIJ + Math.sin(-th) * x0 + Math.cos(-th) * yjInt;
+                                if (x10 > 0 && x10 < this.width && y10 > 0 && y10 < this.height) {
+                                    double d5 = Apollonius.distP(x10, y10, sites[i - 1].x, sites[i - 1].y)
+                                            - sites[i - 1].w;
+                                    boolean valid = true;
+                                    for (int k = 1; k < n + 1; k++) {
+                                        if (k != i && k != j) {
+                                            double d6 = Apollonius.distP(x10, y10, sites[k - 1].x, sites[k - 1].y)
+                                                    - sites[k - 1].w;
+                                            if (d5 > d6) {
+                                                valid = false;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (valid) {
+                                        locSec.add(new double[] { x10, y10 });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (locSec.size() > 0)
+                        allBi.add(locSec.toArray(new double[][] {}));
+                }
             }
         }
-        this.bisectors = allBi.toArray(new double[][][]{});
+        this.bisectors = allBi.toArray(new double[][][] {});
     }
 
     /**
