@@ -264,24 +264,25 @@ public class Apollonius {
             for (int i = 0; i < n; i++) {
                 Set<Integer> pool = new HashSet<Integer>();
                 int[] neighbors = this.delaunay.neighbors(i);
-                for (int ind : neighbors) {
-                    pool.add(ind);
-                    int[] nn = this.delaunay.neighbors(ind);
-                    for (int ind2 : nn) {
-                        pool.add(ind2);
+                for (int nei : neighbors) {
+                    pool.add(nei);
+                    int[] nn = this.delaunay.neighbors(nei);
+                    for (int nnn : nn) {
+                        pool.add(nnn);
                     }
                 }
-                for (int j : pool) {
+                for (Integer j : pool) {
                     String key = i < j ? i + " " + j : j + " " + i;
                     if (processed.contains(key)) continue;
                     ArrayList<double[]> locSec = new ArrayList<double[]>();
                     double distIJ = Apollonius.dist(sites[i], sites[j]);
                     double weightDiffJI = sites[j].w - sites[i].w;
                     if (distIJ > weightDiffJI) {
-                        double midXIJ, midYIJ, halfDistIJ;
-                        halfDistIJ = distIJ / 2;
-                        midXIJ = (sites[i].x + sites[j].y) / 2;
+                        double midXIJ,midYIJ,halfDistIJ;
+                        halfDistIJ = distIJ/2;
+                        midXIJ = (sites[i].x + sites[j].x) / 2; // ?
                         midYIJ = (sites[i].y + sites[j].y) / 2;
+                     
                         double deltaY = midYIJ - sites[i].y;
                         double ph = deltaY / (halfDistIJ);
                         double th = Math.atan(ph / Math.sqrt(1 - ph * ph));
@@ -302,7 +303,7 @@ public class Apollonius {
                                 if (x10 > 0 && x10 < this.width && y10 > 0 && y10 < this.height) {
                                     double d5 = Apollonius.distP(x10, y10, sites[i].x, sites[i].y) - sites[i].w;
                                     boolean valid = true;
-                                    for (int k : pool) {
+                                    for (Integer k : pool) {
                                         if (k != i && k != j) {
                                             double d6 = Apollonius.distP(x10, y10, sites[k].x, sites[k].y) - sites[k].w;
                                             if (d5 > d6) {
@@ -312,13 +313,14 @@ public class Apollonius {
                                         }
                                     }
                                     if (valid) {
-                                        locSec.add(new double[] {x10,y10});
+                                        locSec.add(new double[]{x10, y10});
                                     }
                                 }
                             }
                         }
                     }
                     if (locSec.size() > 0) allBi.add(locSec.toArray(new double[][]{}));
+                    processed.add(i < j ? i + " " + j : j + " " + i);
                 }
             }
         } else {
