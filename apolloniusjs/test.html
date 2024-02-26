@@ -12,22 +12,22 @@
             stroke(0);
             noFill();
             let data = [];
-            for (let i = 0; i < 9; i++) {
-                for (let j = 0; j < 9; j++) {
-                    let x = 60 + i * 60 + random(-20, 20);
-                    let y = 60 + j * 60 + random(-20, 20);
-                    let w = random(5, 30);
-                    data.push(x, y, w);
-                }
-            }
-            // data = [150, 450, 25, 200, 300, 20, 500, 350, 40, 250, 400, 30]
+            // for (let i = 0; i < 9; i++) {
+            //     for (let j = 0; j < 9; j++) {
+            //         let x = 60 + i * 60 + random(-20, 20);
+            //         let y = 60 + j * 60 + random(-20, 20);
+            //         let w = random(5, 30);
+            //         data.push(x, y, w);
+            //     }
+            // }
+             data = [300,300,300,150, 450, 25, 200, 300, 20, 500, 350, 40, 250, 400, 30]
 
             for (let i = 0; i < data.length / 3; i++) {
                 //text(i+1, data[i*3], data[i*3 + 1])
                 circle(data[i * 3], data[i * 3 + 1], data[i * 3 + 2] * 2);
             }
             let g = new Apollonius(width, height);
-            g.setDelaunator(d3.Delaunay);
+            //g.setDelaunator(d3.Delaunay);
             g.setSites(data, true);
             g.setScanGap(1);
             g.build();

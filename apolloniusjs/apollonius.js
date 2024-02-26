@@ -132,6 +132,7 @@ class Apollonius {
         this.scanGap = 1;
         this.bisectors = [];
         this.Delaunay = null;
+        this.boundaryCircle = null; //default is rectangle
     }
 
     /**
@@ -140,6 +141,16 @@ class Apollonius {
      */
     setDelaunator(d) {
         if (d) this.Delaunay = d;
+    }
+
+    /**
+     * set the boundary circle for a graph in a disk container 
+     * 
+     * @param {number} r a positive value
+     */
+    setBoundaryRadius(r){
+        if (r < 0) throw new Error("radius should be positive");
+        this.boundaryCircle = [r,r,r];
     }
 
 
@@ -252,10 +263,6 @@ class Apollonius {
                         halfDistIJ = distIJ/2
                         midXIJ = (sites[i].x + sites[j].x) / 2; // ?
                         midYIJ = (sites[i].y + sites[j].y) / 2;
-                        // let midRatio = 0.5 + (sites[i].w - sites[j].w)/(2 * distIJ);
-                        // midXIJ = sites[i].x + midRatio * (sites[j].x - sites[i].x);
-                        // midYIJ = sites[i].y + midRatio * (sites[j].y - sites[i].y);
-                        // halfDistIJ = distIJ * midRatio;
                         let deltaY = midYIJ - sites[i].y;
                         let ph = deltaY / (halfDistIJ);
                         let th = Math.atan(ph / Math.sqrt(1 - ph * ph));

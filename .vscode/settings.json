@@ -2,5 +2,16 @@
     "java.project.referencedLibraries": [
         "lib/**/*.jar",
         "apolloniusjava/lib/d3Delaunay.jar"
+    ],
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-21",
+            "path": "C:\\Users\\u0007853\\Downloads\\jdk-21_windows-x64_bin\\jdk-21.0.1"
+        },
+        {
+            "name": "JavaSE-15",
+            "path": "C:\\Users\\u0007853\\Downloads\\openjdk-15.0.2_windows-x64_bin\\jdk-15.0.2",
+            "default": true
+        }
     ]
 }
